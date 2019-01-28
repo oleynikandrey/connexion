@@ -33,10 +33,11 @@ def canonical_base_path(base_path):
 
 class Specification(collections_abc.Mapping):
 
-    def __init__(self, raw_spec):
+    def __init__(self, raw_spec, validate_spec=True):
         self._raw_spec = copy.deepcopy(raw_spec)
         self._set_defaults(raw_spec)
-        self._validate_spec(raw_spec)
+        if validate_spec:
+            self._validate_spec(raw_spec)
         self._spec = resolve_refs(raw_spec)
 
     @classmethod
@@ -99,13 +100,13 @@ class Specification(collections_abc.Mapping):
             return yaml.safe_load(openapi_string)
 
     @classmethod
-    def from_file(cls, spec, arguments=None):
+    def from_file(cls, spec, arguments=None, validate_spec=None):
         """
         Takes in a path to a YAML file, and returns a Specification
         """
         specification_path = pathlib.Path(spec)
         spec = cls._load_spec_from_file(arguments, specification_path)
-        return cls.from_dict(spec)
+        return cls.from_dict(spec, validate_spec=validate_spec)
 
     @staticmethod
     def _get_spec_version(spec):
@@ -125,7 +126,7 @@ class Specification(collections_abc.Mapping):
         return version_tuple
 
     @classmethod
-    def from_dict(cls, spec):
+    def from_dict(cls, spec, validate_spec=None):
         """
         Takes in a dictionary, and returns a Specification
         """
@@ -142,14 +143,14 @@ class Specification(collections_abc.Mapping):
         spec = enforce_string_keys(spec)
         version = cls._get_spec_version(spec)
         if version < (3, 0, 0):
-            return Swagger2Specification(spec)
-        return OpenAPISpecification(spec)
+            return Swagger2Specification(spec, validate_spec=validate_spec)
+        return OpenAPISpecification(spec, validate_spec=validate_spec)
 
     @classmethod
-    def load(cls, spec, arguments=None):
+    def load(cls, spec, arguments=None, validate_spec=None):
         if not isinstance(spec, dict):
-            return cls.from_file(spec, arguments=arguments)
-        return cls.from_dict(spec)
+            return cls.from_file(spec, arguments=arguments, validate_spec=validate_spec)
+        return cls.from_dict(spec, validate_spec=validate_spec)
 
 
 class Swagger2Specification(Specification):

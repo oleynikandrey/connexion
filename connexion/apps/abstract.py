@@ -14,7 +14,7 @@ logger = logging.getLogger('connexion.app')
 class AbstractApp(object):
     def __init__(self, import_name, api_cls, port=None, specification_dir='',
                  host=None, server=None, arguments=None, auth_all_paths=False, debug=False,
-                 resolver=None, options=None):
+                 resolver=None, options=None, validate_spec=None):
         """
         :param import_name: the name of the application package
         :type import_name: str
@@ -34,6 +34,7 @@ class AbstractApp(object):
         :type debug: bool
         :param resolver: Callable that maps operationID to a function
         """
+        self.validate_spec = validate_spec
         self.port = port
         self.host = host
         self.debug = debug
@@ -88,7 +89,7 @@ class AbstractApp(object):
                 auth_all_paths=None, validate_responses=False,
                 strict_validation=False, resolver=None, resolver_error=None,
                 pythonic_params=False, pass_context_arg_name=None, options=None,
-                validator_map=None):
+                validator_map=None, validate_spec=None):
         """
         Adds an API to the application based on a swagger file or API dict
 
@@ -152,7 +153,8 @@ class AbstractApp(object):
                            validator_map=validator_map,
                            pythonic_params=pythonic_params,
                            pass_context_arg_name=pass_context_arg_name,
-                           options=api_options.as_dict())
+                           options=api_options.as_dict(),
+                           validate_spec=validate_spec)
         return api
 
     def _resolver_error_handler(self, *args, **kwargs):

@@ -35,7 +35,8 @@ class AbstractAPI(object):
     def __init__(self, specification, base_path=None, arguments=None,
                  validate_responses=False, strict_validation=False, resolver=None,
                  auth_all_paths=False, debug=False, resolver_error_handler=None,
-                 validator_map=None, pythonic_params=False, pass_context_arg_name=None, options=None):
+                 validator_map=None, pythonic_params=False, pass_context_arg_name=None, options=None,
+                 validate_spec=None):
         """
         :type specification: pathlib.Path | dict
         :type base_path: str | None
@@ -59,6 +60,7 @@ class AbstractAPI(object):
         will be passed the framework's request context.
         :type pass_context_arg_name: str | None
         """
+        self.validate_spec = validate_spec
         self.debug = debug
         self.validator_map = validator_map
         self.resolver_error_handler = resolver_error_handler
@@ -70,7 +72,7 @@ class AbstractAPI(object):
                             'auth_all_paths': auth_all_paths})
 
         # Avoid validator having ability to modify specification
-        self.specification = Specification.load(specification, arguments=arguments)
+        self.specification = Specification.load(specification, arguments=arguments, validate_spec=self.validate_spec)
 
         logger.debug('Read specification', extra={'spec': self.specification})
 
