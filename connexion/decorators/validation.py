@@ -1,6 +1,7 @@
 import collections
 import copy
 import functools
+import json
 import logging
 import sys
 
@@ -144,6 +145,20 @@ class RequestBodyValidator(object):
                     return error
             elif self.consumes[0] in FORM_CONTENT_TYPES:
                 data = dict(request.form.items()) or (request.body if len(request.body) > 0 else {})
+
+                # parse inline json
+                parsed_data = {}
+                for k, v in data.items():
+                    try:
+                        parsed_data[k] = json.loads(v)
+                    except Exception as exc:
+                        logger.warn(exc)
+
+                if parsed_data:
+                    data = parsed_data
+                    # update request.form for future usage
+                    request.form = parsed_data
+
                 data.update(dict.fromkeys(request.files, ''))  # validator expects string..
                 logger.debug('%s validating schema...', request.url)
 
